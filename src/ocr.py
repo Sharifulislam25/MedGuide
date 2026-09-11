@@ -9,12 +9,12 @@ find and change independently of the preprocessing steps.
 import pytesseract
 from PIL import Image
 
-# --- Windows note ---
-# If Tesseract isn't on your system PATH, pytesseract won't find it even
-# though it's installed. If you hit a "TesseractNotFoundError" below,
-# uncomment the next line and point it at your install location:
-#
-# pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import os
+
+# Set Tesseract binary path for Windows
+TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if os.path.exists(TESSERACT_PATH):
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 
 def run_ocr(image: Image.Image) -> str:
