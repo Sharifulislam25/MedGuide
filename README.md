@@ -8,7 +8,7 @@ A local, offline medical document assistant. Built incrementally, one phase at a
 - [x] Phase 2 — TXT upload
 - [x] Phase 3 — PDF extraction
 - [x] Phase 4 — Image OCR
-- [ ] Phase 5 — Scanned-PDF OCR fallback
+- [x] Phase 5 — Scanned-PDF OCR fallback
 - [ ] Phase 6 — Text cleaning
 - [ ] Phase 7 — Chunking
 - [ ] Phase 8 — Local embeddings
