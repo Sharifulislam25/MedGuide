@@ -11,13 +11,19 @@ from PIL import Image
 
 import os
 
-# Set Tesseract binary path for Windows
+# Set Tesseract binary path for Windows if present
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 if os.path.exists(TESSERACT_PATH):
     pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
+# --psm 6 tells Tesseract to "assume a single uniform block of text".
+# For scanned forms/reports (as opposed to a photo of a single line, or
+# a page with sparse scattered text), this reads noticeably better than
+# Tesseract's default page-segmentation mode.
+DEFAULT_OCR_CONFIG = "--psm 6"
 
-def run_ocr(image: Image.Image) -> str:
+
+def run_ocr(image: Image.Image, config: str = DEFAULT_OCR_CONFIG) -> str:
     """
     Extract text from an image using Tesseract.
 
@@ -25,6 +31,11 @@ def run_ocr(image: Image.Image) -> str:
     ----------
     image : PIL.Image.Image
         The (ideally preprocessed) image to run OCR on.
+    config : str
+        Tesseract command-line options. Defaults to "--psm 6". If OCR
+        results look wrong for a particular kind of document, this is
+        worth experimenting with — e.g. "--psm 4" tends to work better
+        for text laid out in columns.
 
     Returns
     -------
@@ -33,7 +44,7 @@ def run_ocr(image: Image.Image) -> str:
         Returns an empty string if Tesseract finds no text at all.
     """
     try:
-        text = pytesseract.image_to_string(image)
+        text = pytesseract.image_to_string(image, config=config)
     except pytesseract.TesseractNotFoundError:
         # Turn the cryptic library error into a clear message that
         # points the user at the fix.

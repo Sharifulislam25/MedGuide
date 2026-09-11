@@ -10,22 +10,34 @@ works on a copy, producing a new image just for Tesseract to read.
 """
 
 import io
-from PIL import Image, ImageOps, ImageEnhance
+from PIL import Image, ImageOps
 import numpy as np
 import cv2
 
 from src.document_loader import Document
 from src.ocr import run_ocr
 
+# If an uploaded image is narrower than this, we upscale it before OCR.
+# Small/compressed photos (e.g. a 600x730 phone photo of a form) tend to
+# have text too small for Tesseract to read reliably otherwise.
+MIN_WIDTH_FOR_OCR = 1800
+
+# Safety cap so we don't blow up memory on an unusually huge upload.
+MAX_WIDTH_FOR_OCR = 3000
+
 
 def preprocess_image(pil_image: Image.Image) -> Image.Image:
     """
-    Apply a simple, beginner-friendly preprocessing pipeline to improve
-    OCR accuracy:
-      1. Resize if the image is very large (speeds up OCR without hurting accuracy)
-      2. Convert to grayscale
-      3. Boost contrast
-      4. Threshold to pure black/white so text stands out from the background
+    Apply a preprocessing pipeline to improve OCR accuracy:
+      1. Upscale if the image is small (most common cause of poor OCR
+         on phone photos / low-res scans); downscale if it's huge.
+      2. Convert to grayscale.
+      3. Sharpen — counters the blur introduced by upscaling and by
+         JPEG compression.
+      4. Adaptive thresholding — converts to black/white using a
+         locally-computed cutoff, which handles the uneven lighting
+         and shadows typical of a photographed (not flatbed-scanned)
+         document better than a single global threshold.
 
     Parameters
     ----------
@@ -40,30 +52,49 @@ def preprocess_image(pil_image: Image.Image) -> Image.Image:
     # Work on a copy so the original is never modified.
     image = pil_image.copy()
 
-    # 1. Resize if very large.
-    max_dimension = 2000
-    if max(image.size) > max_dimension:
-        scale = max_dimension / max(image.size)
-        new_size = (int(image.width * scale), int(image.height * scale))
-        image = image.resize(new_size)
+    # 1. Resize: upscale small images, downscale very large ones.
+    #    INTER_LANCZOS4 is a higher-quality (if slower) resize algorithm
+    #    than the default — it matters here because we're stretching a
+    #    small image up rather than just shrinking a large one.
+    width, height = image.size
+    if width < MIN_WIDTH_FOR_OCR:
+        scale = MIN_WIDTH_FOR_OCR / width
+    elif width > MAX_WIDTH_FOR_OCR:
+        scale = MAX_WIDTH_FOR_OCR / width
+    else:
+        scale = 1.0
 
-    # 2. Grayscale — OCR works on light/dark contrast, not color.
+    if scale != 1.0:
+        new_size = (int(width * scale), int(height * scale))
+        image_array = np.array(image)
+        image_array = cv2.resize(image_array, new_size, interpolation=cv2.INTER_LANCZOS4)
+        image = Image.fromarray(image_array)
+
+    # 2. Grayscale — OCR cares about light/dark contrast, not color.
     image = ImageOps.grayscale(image)
+    gray = np.array(image)
 
-    # 3. Contrast enhancement — makes faint text easier for Tesseract to catch.
-    enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(1.5)
+    # 3. Sharpen using an "unsharp mask": blur a copy, then subtract a
+    #    weighted amount of that blur from the original. This makes
+    #    letter edges crisper, which helps a lot after upscaling.
+    blurred = cv2.GaussianBlur(gray, (0, 0), sigmaX=3)
+    sharpened = cv2.addWeighted(gray, 1.5, blurred, -0.5, 0)
 
-    # 4. Thresholding (via OpenCV) — converts to pure black/white using
-    #    Otsu's method, which picks a good cutoff automatically instead
-    #    of us having to guess one.
-    image_array = np.array(image)
-    _, thresholded = cv2.threshold(
-        image_array, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    # 4. Adaptive thresholding instead of a single global cutoff (Otsu).
+    #    A photographed page often has uneven lighting — one corner
+    #    brighter than another — and a single global threshold can turn
+    #    the darker side into a black blob. Adaptive thresholding
+    #    computes a local cutoff for each neighborhood instead.
+    thresholded = cv2.adaptiveThreshold(
+        sharpened,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        blockSize=31,
+        C=15,
     )
-    image = Image.fromarray(thresholded)
 
-    return image
+    return Image.fromarray(thresholded)
 
 
 def load_image(uploaded_file) -> Document:
