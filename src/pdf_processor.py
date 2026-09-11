@@ -3,7 +3,7 @@ pdf_processor.py
 
 Extracts text from PDF files using PyMuPDF (imported as "fitz").
 
-For now (Phase 3), this only handles normal PDFs that already contain
+For now (Phase 3/4), this only handles normal PDFs that already contain
 selectable text. Scanned PDFs with little or no extractable text will
 get an OCR fallback in Phase 5 — this module will be extended then,
 not replaced.
@@ -18,6 +18,15 @@ def load_pdf(uploaded_file) -> List[Document]:
     """
     Read a PDF uploaded through Streamlit's file_uploader and return one
     Document per page.
+
+    Parameters
+    ----------
+    uploaded_file : a Streamlit UploadedFile object
+
+    Returns
+    -------
+    List[Document]
+        One Document per page, each holding that page's extracted text.
     """
     pdf_bytes = uploaded_file.read()
     pdf = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -38,4 +47,3 @@ def load_pdf(uploaded_file) -> List[Document]:
 
     pdf.close()
     return documents
-    
