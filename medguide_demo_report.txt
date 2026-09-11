@@ -1,0 +1,39 @@
+MEDGUIDE V1 - DEMO MEDICAL REPORT
+================================
+
+Patient Information
+-------------------
+Patient ID: DEMO-001
+Age: 35
+Sex: Male
+Report Date: 12 September 2026
+
+Laboratory Results
+------------------
+Test: Fasting Blood Glucose
+Result: 118 mg/dL
+Reference Range: 70-99 mg/dL
+
+Test: Hemoglobin
+Result: 13.8 g/dL
+Reference Range: 13.0-17.0 g/dL
+
+Test: Total Cholesterol
+Result: 205 mg/dL
+Reference Range: Less than 200 mg/dL
+
+Test: Blood Pressure
+Result: 128/82 mmHg
+Typical Adult Target: Around 120/80 mmHg
+
+Doctor's Notes
+--------------
+The fasting blood glucose result is above the listed reference range.
+The total cholesterol is slightly above the listed reference value.
+Other reported values are within the provided reference ranges.
+
+Important
+---------
+This is a fictional DEMO report created for testing the MedGuide application.
+It is not a real medical record and should not be used for diagnosis or treatment.
+Please consult a qualified healthcare professional for interpretation of real medical results.
