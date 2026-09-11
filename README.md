@@ -1,4 +1,4 @@
-# MedGuide V1 (work in progress)
+# MedReportSum (MedGuide)
 
 A local, offline medical document assistant. Built incrementally, one phase at a time.
 
