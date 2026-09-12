@@ -1,0 +1,20 @@
+Kidney Function Tests (KFT / BMP)
+
+Kidney function tests measure how well the kidneys are filtering waste from the blood. Commonly reported values include:
+
+- Creatinine: a waste product from normal muscle activity, filtered out by the kidneys
+- BUN (Blood Urea Nitrogen): a waste product from protein breakdown, also filtered by the kidneys
+- eGFR (estimated Glomerular Filtration Rate): a calculated estimate of how well the kidneys are filtering, based on creatinine, age, and sex
+
+Commonly used reference ranges for adults (these vary by lab and by muscle mass/age):
+- Creatinine: roughly 0.6-1.3 mg/dL
+- BUN: roughly 7-20 mg/dL
+- eGFR: 90 or above is generally considered normal kidney function; lower values suggest reduced function, with sustained readings under 60 often used as a threshold of concern
+
+What elevated creatinine/BUN or a low eGFR can be associated with:
+Reduced kidney function can be associated with many causes, including dehydration, certain medications, high blood pressure, diabetes, or kidney disease. A single abnormal result is common and can be temporary (for example, from dehydration) -- confirming reduced kidney function typically requires repeat testing over time.
+
+What low creatinine/BUN can be associated with:
+Lower-than-typical values can be associated with lower muscle mass, pregnancy, or other factors, and are often not concerning on their own.
+
+This information is educational only. Kidney function naturally varies with hydration, muscle mass, age, and many other factors, and should be interpreted by a qualified healthcare professional in the context of trends over time and other health information.

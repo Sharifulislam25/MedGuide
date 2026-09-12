@@ -1,0 +1,19 @@
+Thyroid Function (TSH, Free T4, Free T3)
+
+The thyroid gland produces hormones that regulate metabolism. Thyroid function is usually assessed with:
+
+- TSH (Thyroid Stimulating Hormone): produced by the pituitary gland to signal the thyroid; often the first test used to screen thyroid function
+- Free T4 and Free T3: the actual thyroid hormones circulating in the blood, often checked as follow-up tests if TSH is abnormal
+
+Commonly used reference ranges for adults (these vary by lab):
+- TSH: roughly 0.4-4.0 mIU/L
+- Free T4: roughly 0.8-1.8 ng/dL
+- Free T3: roughly 2.3-4.2 pg/mL
+
+What a high TSH can be associated with:
+A higher-than-typical TSH is often associated with an underactive thyroid (hypothyroidism), where the pituitary produces more TSH to try to stimulate a sluggish thyroid. Possible associated symptoms include fatigue, weight gain, or feeling cold, though many people with mildly abnormal levels have no symptoms.
+
+What a low TSH can be associated with:
+A lower-than-typical TSH is often associated with an overactive thyroid (hyperthyroidism), with possible associated symptoms such as weight loss, a rapid heartbeat, or feeling anxious or overheated.
+
+This information is educational only. Thyroid results are typically interpreted together (TSH alongside Free T4/T3), and a single value should be reviewed by a qualified healthcare professional rather than interpreted in isolation.

@@ -33,6 +33,21 @@ def get_collection(collection_name: str):
     return client.get_or_create_collection(name=collection_name)
 
 
+def delete_collection(collection_name: str) -> None:
+    """
+    Delete a collection entirely (all its chunks and embeddings).
+    Used when rebuilding the medical knowledge base after editing the
+    files in knowledge/ -- it's simpler to delete and rebuild from
+    scratch than to figure out which specific items changed.
+    """
+    client = get_chroma_client()
+    try:
+        client.delete_collection(name=collection_name)
+    except Exception:
+        # Collection may not exist yet -- nothing to delete, that's fine.
+        pass
+
+
 def add_chunks(collection_name: str, chunks: List[Chunk], embeddings: List[List[float]]) -> None:
     """
     Store chunks and their embeddings in a ChromaDB collection.

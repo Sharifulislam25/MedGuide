@@ -1,0 +1,21 @@
+Blood Glucose (Blood Sugar)
+
+Blood glucose is the amount of sugar (glucose) circulating in the blood. The body uses glucose as its main energy source, and levels are regulated mainly by the hormone insulin.
+
+Common ways glucose is measured:
+- Fasting Blood Glucose: measured after not eating for at least 8 hours.
+- Random (non-fasting) Blood Glucose: measured at any time of day.
+- HbA1c (Hemoglobin A1c): reflects average blood glucose over roughly the past 2-3 months.
+
+Commonly used reference ranges (these can vary slightly by lab):
+- Normal fasting glucose: roughly 70-99 mg/dL
+- Prediabetes (impaired fasting glucose): roughly 100-125 mg/dL
+- Diabetes: fasting glucose of 126 mg/dL or higher, confirmed on more than one occasion
+
+What a high fasting glucose result can be associated with:
+A single elevated fasting glucose reading does not, by itself, confirm a diagnosis of diabetes or prediabetes. Diagnosis typically requires repeat testing, additional tests such as HbA1c or an oral glucose tolerance test, and evaluation by a healthcare professional who can consider symptoms, medical history, and other lab results together.
+
+What low blood glucose (hypoglycemia) can be associated with:
+Levels below roughly 70 mg/dL may be associated with symptoms such as shakiness, sweating, confusion, or dizziness. There are many possible causes, including medication effects, fasting, or underlying health conditions.
+
+This information is educational only. Reference ranges vary between laboratories and individuals, and interpreting any specific result requires the full clinical context that only a qualified healthcare professional has access to.

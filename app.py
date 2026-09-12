@@ -4,14 +4,67 @@ from src.pdf_processor import load_pdf
 from src.image_processor import load_image
 from src.text_processor import clean_text
 from src.chunker import chunk_documents
-from src.embeddings import embed_texts
+from src.embeddings import embed_texts, embed_query
 from src.vector_store import add_chunks, query_collection, get_collection
-from src.config import USER_DOCUMENTS_COLLECTION
+from src.config import USER_DOCUMENTS_COLLECTION, MEDICAL_KNOWLEDGE_COLLECTION
+from src.knowledge_base import (
+    build_medical_knowledge_base,
+    medical_knowledge_base_is_empty,
+    rebuild_medical_knowledge_base,
+)
 
 st.set_page_config(
     page_title="MedGuide",
     layout="wide"
 )
+
+with st.sidebar:
+    st.header("Admin")
+    st.caption("For development use -- rebuilds the reference knowledge base after editing files in knowledge/.")
+    if st.button("🔄 Rebuild medical knowledge base"):
+        with st.spinner("Rebuilding medical knowledge base..."):
+            num_rebuilt = rebuild_medical_knowledge_base()
+        st.success(f"Rebuilt: {num_rebuilt} chunks stored.")
+
+    st.divider()
+    st.subheader("Test the knowledge base")
+    st.caption(
+        "Debug tool: search medical_knowledge directly with any "
+        "question, to see exactly what would be retrieved from it."
+    )
+    test_query = st.text_input("Question to search for")
+
+    col_search, col_clear = st.columns(2)
+
+    if col_search.button("🔍 Search") and test_query:
+        with st.spinner("Searching..."):
+            query_vector = embed_query(test_query)
+            search_results = query_collection(MEDICAL_KNOWLEDGE_COLLECTION, query_vector, top_k=3)
+        # Streamlit reruns this whole script on every interaction, so
+        # without saving to session_state, these results would vanish
+        # the moment you clicked anything else. Session state persists
+        # for as long as this browser tab stays open.
+        st.session_state["kb_search_query"] = test_query
+        st.session_state["kb_search_results"] = search_results
+
+    if col_clear.button("🧹 Clear"):
+        st.session_state.pop("kb_search_query", None)
+        st.session_state.pop("kb_search_results", None)
+
+    if "kb_search_results" in st.session_state:
+        st.caption(f'Results for: "{st.session_state["kb_search_query"]}"')
+        results = st.session_state["kb_search_results"]
+        result_docs = results["documents"][0]
+        result_metas = results["metadatas"][0]
+        result_distances = results["distances"][0]
+
+        if not result_docs:
+            st.write("No results. Has the knowledge base been built yet?")
+        else:
+            for doc_text, meta, distance in zip(result_docs, result_metas, result_distances):
+                # Smaller distance = more similar to your question.
+                st.write(f"**{meta['source']}** (distance: {distance:.3f})")
+                st.caption(doc_text[:200] + "...")
 
 st.title("MedGuide")
 st.subheader("Medical Document Assistant")
@@ -20,6 +73,20 @@ st.write(
     "Upload a medical document to get started. "
     "(Currently supported: TXT, PDF, JPG, JPEG, PNG. More formats are added in later phases.)"
 )
+
+# --- Medical knowledge base (Phase 10) ---
+# Loads MedGuide's own trusted reference texts (knowledge/*.txt) into a
+# separate ChromaDB collection, kept apart from whatever the user
+# uploads. This only needs to happen once -- after the first run,
+# ChromaDB's persistent storage already has it, so this check is
+# instant on every run after that.
+if medical_knowledge_base_is_empty():
+    with st.spinner("Setting up the medical knowledge base (first run only)..."):
+        num_knowledge_chunks = build_medical_knowledge_base()
+    st.info(
+        f"Medical knowledge base loaded: {num_knowledge_chunks} chunks "
+        "covering glucose, blood pressure, hemoglobin, and cholesterol."
+    )
 
 uploaded_file = st.file_uploader(
     "Choose a file", type=["txt", "pdf", "jpg", "jpeg", "png"]

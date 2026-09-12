@@ -1,0 +1,29 @@
+Complete Blood Count (CBC) - White Blood Cells and Platelets
+
+A Complete Blood Count (CBC) is one of the most common blood tests, giving a broad snapshot of overall health. It includes several components; hemoglobin and red blood cells are covered separately (see the "Hemoglobin" topic). This file covers the other two major CBC components: white blood cells and platelets.
+
+White Blood Cells (WBC):
+White blood cells are part of the immune system and help the body fight infection.
+
+Commonly used reference range for adults (varies by lab):
+- Roughly 4,000-11,000 cells per microliter (4.0-11.0 x10^9/L)
+
+What a high WBC count can be associated with:
+Higher-than-typical white blood cell counts are often associated with infection, inflammation, or physical stress on the body, but can have other causes too. A single high count does not, by itself, identify the cause -- doctors typically look at the specific types of white blood cells (a "differential") along with symptoms and other tests.
+
+What a low WBC count can be associated with:
+Lower-than-typical counts can be associated with certain viral infections, some medications, bone marrow conditions, or other causes.
+
+Platelets:
+Platelets are small cell fragments involved in blood clotting.
+
+Commonly used reference range for adults (varies by lab):
+- Roughly 150,000-450,000 platelets per microliter
+
+What a high platelet count can be associated with:
+Elevated platelet counts can be associated with inflammation, iron deficiency, or other conditions.
+
+What a low platelet count can be associated with:
+Low platelet counts can be associated with increased bleeding or bruising risk, and have many possible causes, including certain medications, infections, or bone marrow conditions.
+
+This information is educational only. A single abnormal CBC value is common and often not significant on its own -- interpretation requires the full clinical picture and should be done by a qualified healthcare professional.

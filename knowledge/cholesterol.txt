@@ -1,0 +1,19 @@
+Cholesterol
+
+Cholesterol is a fat-like substance carried through the blood by lipoproteins. A standard lipid panel usually reports several values together:
+
+- Total Cholesterol
+- LDL ("bad") Cholesterol -- tends to contribute to buildup in artery walls
+- HDL ("good") Cholesterol -- helps remove cholesterol from the bloodstream
+- Triglycerides -- another type of fat carried in the blood
+
+Commonly used reference ranges for adults (these vary by lab and by individual risk factors):
+- Total Cholesterol: below 200 mg/dL is often considered desirable
+- LDL Cholesterol: below 100 mg/dL is often considered optimal, with higher values indicating increasing risk
+- HDL Cholesterol: higher is generally considered better; below roughly 40 mg/dL (men) or 50 mg/dL (women) is often considered low
+- Triglycerides: below 150 mg/dL is often considered normal
+
+What abnormal cholesterol results can be associated with:
+Elevated LDL cholesterol and triglycerides, or low HDL cholesterol, are associated with increased long-term cardiovascular risk, but a single lipid panel result does not, by itself, determine an individual's overall risk. Healthcare professionals typically weigh cholesterol alongside other factors such as blood pressure, age, family history, smoking status, and lifestyle.
+
+This information is educational only. Target cholesterol levels vary considerably between individuals based on their overall cardiovascular risk profile, which should be assessed by a qualified healthcare professional.

@@ -1,0 +1,24 @@
+Liver Function Tests (LFTs)
+
+Liver function tests are a group of blood tests that give information about the health of the liver. Commonly reported values include:
+
+- ALT (Alanine Aminotransferase) and AST (Aspartate Aminotransferase): enzymes released when liver cells are damaged or inflamed
+- Bilirubin: a substance produced when red blood cells break down, normally processed by the liver
+- Albumin: a protein made by the liver that helps maintain fluid balance in the blood
+
+Commonly used reference ranges for adults (these vary by lab):
+- ALT: roughly 7-56 U/L
+- AST: roughly 8-48 U/L
+- Total Bilirubin: roughly 0.1-1.2 mg/dL
+- Albumin: roughly 3.5-5.0 g/dL
+
+What elevated ALT/AST can be associated with:
+Higher-than-typical liver enzymes can be associated with many things, ranging from temporary causes (certain medications, alcohol use, recent intense exercise) to conditions such as fatty liver, viral hepatitis, or other liver disease. A single elevated result does not, by itself, indicate a specific diagnosis.
+
+What abnormal bilirubin can be associated with:
+Elevated bilirubin can be associated with liver conditions, bile duct blockage, or increased breakdown of red blood cells, and can sometimes cause visible yellowing of the skin or eyes (jaundice).
+
+What low albumin can be associated with:
+Lower-than-typical albumin can be associated with liver disease, kidney disease, malnutrition, or inflammation, among other causes.
+
+This information is educational only. Liver enzyme levels can fluctuate for many reasons, and a single abnormal result should be interpreted by a qualified healthcare professional alongside other information.

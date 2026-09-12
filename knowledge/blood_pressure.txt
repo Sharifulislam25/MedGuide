@@ -1,0 +1,18 @@
+Blood Pressure
+
+Blood pressure measures the force of blood pushing against artery walls. It is recorded as two numbers: systolic (pressure when the heart beats) over diastolic (pressure when the heart rests between beats) -- for example, "120/80 mmHg".
+
+Commonly used categories (these vary slightly between guidelines and countries):
+- Normal: below about 120/80 mmHg
+- Elevated: systolic 120-129 with diastolic below 80 mmHg
+- Hypertension Stage 1: systolic 130-139 or diastolic 80-89 mmHg
+- Hypertension Stage 2: systolic 140 or higher, or diastolic 90 or higher
+- Hypertensive crisis: systolic above 180 and/or diastolic above 120 -- this is considered a potential emergency requiring immediate medical attention
+
+What consistently high blood pressure can be associated with:
+Sustained high blood pressure (hypertension) is a well-established risk factor for conditions such as heart disease, stroke, and kidney disease over time. A single high reading is common and can result from many temporary factors (stress, caffeine, physical activity, improper cuff size or position). It does not, by itself, mean someone has hypertension -- diagnosis typically requires multiple readings taken on different occasions.
+
+What low blood pressure (hypotension) can be associated with:
+Depending on the person, low blood pressure may cause no symptoms at all, or may be associated with dizziness or fainting, especially when standing up quickly.
+
+This information is educational only and does not replace a professional evaluation, which takes into account trends over time, symptoms, and individual health history.
