@@ -14,8 +14,8 @@ A local, offline medical document assistant. Built incrementally, one phase at a
 - [x] Phase 8 — Local embeddings
 - [x] Phase 9 — ChromaDB
 - [x] Phase 10 — Medical knowledge base
-- [ ] Phase 11–13 — Retrieval + RAG pipeline
-- [ ] Phase 14 — Response engine
+- [x] Phase 11–13 — Retrieval + RAG pipeline
+- [x] Phase 14 — Response engine
 - [ ] Phase 15 — Safety rules
 - [ ] Phase 16 — Full UI
 

@@ -12,6 +12,8 @@ from src.knowledge_base import (
     medical_knowledge_base_is_empty,
     rebuild_medical_knowledge_base,
 )
+from src.rag import build_context
+from src.response import generate_response, get_sources
 
 st.set_page_config(
     page_title="MedGuide",
@@ -251,6 +253,64 @@ if uploaded_file is not None:
                 st.text((retrieved_text or "(nothing retrieved)")[:300])
         else:
             st.write("No chunks to store.")
+
+# --- Ask MedGuide (Phases 11-14: retrieval + RAG + response engine) ---
+# Searches BOTH collections (Phases 11-13), then Phase 14's response
+# engine turns the retrieved chunks into an actual written answer using
+# templates and rules in src/response.py and src/medical_rules.py --
+# no LLM involved (see Section 17 of the project spec).
+st.divider()
+st.subheader("Ask MedGuide")
+
+question = st.text_input("What would you like to know?")
+
+col_ask, col_clear_answer = st.columns(2)
+
+if col_ask.button("Ask") and question:
+    with st.spinner("Searching your documents and the medical knowledge base..."):
+        rag_context = build_context(question)
+        answer_text = generate_response(rag_context)
+        sources = get_sources(rag_context)
+    st.session_state["rag_context"] = rag_context
+    st.session_state["answer_text"] = answer_text
+    st.session_state["sources"] = sources
+
+if col_clear_answer.button("🧹 Clear"):
+    st.session_state.pop("rag_context", None)
+    st.session_state.pop("answer_text", None)
+    st.session_state.pop("sources", None)
+
+if "answer_text" in st.session_state:
+    rag_context = st.session_state["rag_context"]
+    st.caption(f'For: "{rag_context.query}"')
+
+    st.subheader("Answer")
+    st.write(st.session_state["answer_text"])
+
+    st.subheader("Sources")
+    sources = st.session_state["sources"]
+    if sources:
+        for source in sources:
+            st.write(f"- {source}")
+    else:
+        st.write("No sources -- nothing relevant was found.")
+
+    with st.expander("Retrieved context (debug view)"):
+        st.write("**From your uploaded documents:**")
+        if rag_context.user_document_chunks:
+            for chunk in rag_context.user_document_chunks:
+                st.write(f"- {chunk.source}, page {chunk.page} (distance: {chunk.distance:.3f})")
+                st.caption(chunk.text[:250] + ("..." if len(chunk.text) > 250 else ""))
+        else:
+            st.caption("Nothing relevant found in your uploaded documents.")
+
+        st.write("**From the medical knowledge base:**")
+        if rag_context.medical_knowledge_chunks:
+            for chunk in rag_context.medical_knowledge_chunks:
+                st.write(f"- {chunk.source} (distance: {chunk.distance:.3f})")
+                st.caption(chunk.text[:250] + ("..." if len(chunk.text) > 250 else ""))
+        else:
+            st.caption("Nothing relevant found in the medical knowledge base.")
 
 st.divider()
 st.caption(

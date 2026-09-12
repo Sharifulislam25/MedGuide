@@ -38,3 +38,12 @@ MEDICAL_KNOWLEDGE_COLLECTION = "medical_knowledge"
 
 # How many chunks to retrieve per search (Phase 11+).
 TOP_K = 3
+
+# --- Retrieval relevance ---
+# ChromaDB always returns its "closest" matches, even when none of them
+# are actually relevant (nearest-neighbor search has no built-in idea
+# of "nothing matches"). This threshold filters out chunks that aren't
+# a good enough match to be worth using. Based on testing: a genuinely
+# relevant match usually scores well under 1.5; a totally unrelated
+# question scores close to 2.0 (see distance testing notes in Phase 14).
+RELEVANCE_THRESHOLD = 1.5
