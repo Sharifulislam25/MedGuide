@@ -9,9 +9,9 @@ A local, offline medical document assistant. Built incrementally, one phase at a
 - [x] Phase 3 — PDF extraction
 - [x] Phase 4 — Image OCR
 - [x] Phase 5 — Scanned-PDF OCR fallback
-- [ ] Phase 6 — Text cleaning
-- [ ] Phase 7 — Chunking
-- [ ] Phase 8 — Local embeddings
+- [x] Phase 6 — Text cleaning
+- [x] Phase 7 — Chunking
+- [x] Phase 8 — Local embeddings
 - [ ] Phase 9 — ChromaDB
 - [ ] Phase 10 — Medical knowledge base
 - [ ] Phase 11–13 — Retrieval + RAG pipeline

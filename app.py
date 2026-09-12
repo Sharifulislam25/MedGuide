@@ -2,6 +2,9 @@ import streamlit as st
 from src.document_loader import load_txt
 from src.pdf_processor import load_pdf
 from src.image_processor import load_image
+from src.text_processor import clean_text
+from src.chunker import chunk_documents
+from src.embeddings import embed_texts
 
 st.set_page_config(
     page_title="MedGuide",
@@ -48,6 +51,12 @@ if uploaded_file is not None:
         st.error("Unsupported file type. Please upload PDF, JPG, JPEG, PNG, TXT, or MD.")
 
     if documents:
+        # Clean the extracted text right after extraction, so every
+        # later step (display, chunking, embedding) works with the same
+        # tidy text -- not raw PDF/OCR output.
+        for doc in documents:
+            doc.text = clean_text(doc.text)
+
         st.divider()
         st.subheader("Document Information")
         st.write(f"**File:** {documents[0].source}")
@@ -87,6 +96,57 @@ if uploaded_file is not None:
                         height=200,
                         key=f"page_{doc.page}"
                     )
+
+        # --- Chunking (Phase 7) ---
+        # Split the cleaned text into overlapping chunks, ready for the
+        # embedding step in Phase 8. Shown here as a debug view for now
+        # so it's easy to sanity-check chunk sizes before we start
+        # generating embeddings from them.
+        chunks = chunk_documents(documents)
+
+        st.divider()
+        st.subheader("Chunking (debug view)")
+
+        total_characters = sum(len(doc.text) for doc in documents)
+        total_chunks = len(chunks)
+        average_chunk_size = (
+            sum(len(c.text) for c in chunks) / total_chunks if total_chunks > 0 else 0
+        )
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total characters", total_characters)
+        col2.metric("Total chunks", total_chunks)
+        col3.metric("Average chunk size", f"{average_chunk_size:.0f}")
+
+        with st.expander(f"View all {total_chunks} chunks"):
+            for chunk in chunks:
+                st.caption(
+                    f"Chunk {chunk.chunk_id} — {chunk.source}, "
+                    f"page {chunk.page} ({len(chunk.text)} chars)"
+                )
+                st.text(chunk.text)
+                st.markdown("---")
+
+        # --- Embeddings (Phase 8) ---
+        # Turn each chunk's text into a vector. The first run of this
+        # will be slow (downloading the model, ~90MB); after that it's
+        # cached locally and loads in a couple of seconds.
+        st.divider()
+        st.subheader("Embeddings (debug view)")
+
+        if chunks:
+            with st.spinner("Loading embedding model and generating embeddings..."):
+                chunk_texts = [chunk.text for chunk in chunks]
+                embeddings = embed_texts(chunk_texts)
+
+            embedding_dimension = len(embeddings[0]) if embeddings else 0
+            st.write(f"**Embeddings generated:** {len(embeddings)}")
+            st.write(f"**Embedding dimension:** {embedding_dimension}")
+
+            with st.expander("Preview first embedding vector (first 8 of 384 numbers)"):
+                st.code(str(embeddings[0][:8]))
+        else:
+            st.write("No chunks to embed.")
 
 st.divider()
 st.caption(
