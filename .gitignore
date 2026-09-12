@@ -20,3 +20,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# ChromaDB local database storage
+database/
+*.sqlite3

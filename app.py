@@ -5,6 +5,8 @@ from src.image_processor import load_image
 from src.text_processor import clean_text
 from src.chunker import chunk_documents
 from src.embeddings import embed_texts
+from src.vector_store import add_chunks, query_collection, get_collection
+from src.config import USER_DOCUMENTS_COLLECTION
 
 st.set_page_config(
     page_title="MedGuide",
@@ -147,6 +149,41 @@ if uploaded_file is not None:
                 st.code(str(embeddings[0][:8]))
         else:
             st.write("No chunks to embed.")
+
+        # --- Vector Store (Phase 9) ---
+        # Persist the chunks + embeddings in a local, on-disk ChromaDB
+        # collection, so they survive between runs of the app instead
+        # of needing to be re-embedded every time you open MedGuide.
+        st.divider()
+        st.subheader("Vector Store (debug view)")
+
+        if chunks:
+            add_chunks(USER_DOCUMENTS_COLLECTION, chunks, embeddings)
+            collection = get_collection(USER_DOCUMENTS_COLLECTION)
+
+            st.write(f"**Collection:** {USER_DOCUMENTS_COLLECTION}")
+            st.write(f"**Total chunks stored (across all uploads so far):** {collection.count()}")
+
+            # Round-trip sanity check: querying with a chunk's own
+            # embedding should retrieve that exact same chunk back.
+            # This is the "chunk -> embedding -> ChromaDB -> retrieve"
+            # test the project plan calls for at this phase.
+            check_result = query_collection(USER_DOCUMENTS_COLLECTION, embeddings[0], top_k=1)
+            retrieved_docs = check_result["documents"][0]
+            retrieved_text = retrieved_docs[0] if retrieved_docs else None
+
+            if retrieved_text == chunks[0].text:
+                st.success("Round-trip check passed: a stored chunk was retrieved correctly.")
+            else:
+                st.warning("Round-trip check: retrieved text didn't match exactly -- see details below.")
+
+            with st.expander("Round-trip check details"):
+                st.write("Chunk that was stored:")
+                st.text(chunks[0].text[:300])
+                st.write("Chunk retrieved back from ChromaDB:")
+                st.text((retrieved_text or "(nothing retrieved)")[:300])
+        else:
+            st.write("No chunks to store.")
 
 st.divider()
 st.caption(

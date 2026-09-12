@@ -12,7 +12,7 @@ A local, offline medical document assistant. Built incrementally, one phase at a
 - [x] Phase 6 — Text cleaning
 - [x] Phase 7 — Chunking
 - [x] Phase 8 — Local embeddings
-- [ ] Phase 9 — ChromaDB
+- [x] Phase 9 — ChromaDB
 - [ ] Phase 10 — Medical knowledge base
 - [ ] Phase 11–13 — Retrieval + RAG pipeline
 - [ ] Phase 14 — Response engine

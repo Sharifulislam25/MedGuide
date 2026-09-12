@@ -22,3 +22,19 @@ CHUNK_OVERLAP = 150
 # document chunks and user questions (Phase 11+), so it's defined once
 # here rather than being hard-coded in multiple files.
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+
+# --- Vector storage (ChromaDB) ---
+# A persistent local path -- ChromaDB writes its database files here,
+# so embeddings survive between runs instead of needing to be
+# regenerated every time the app starts.
+CHROMA_DB_PATH = "database/chroma_db"
+
+# Two separate collections, per the spec: one for whatever the user
+# uploads, one for MedGuide's own trusted medical reference info
+# (added in Phase 10). Kept separate so a search never accidentally
+# mixes "what your report says" with "general medical background".
+USER_DOCUMENTS_COLLECTION = "user_documents"
+MEDICAL_KNOWLEDGE_COLLECTION = "medical_knowledge"
+
+# How many chunks to retrieve per search (Phase 11+).
+TOP_K = 3

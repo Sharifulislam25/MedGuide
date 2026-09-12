@@ -5,3 +5,4 @@ opencv-python-headless>=4.9
 pytesseract>=0.3.10
 numpy>=1.26
 sentence-transformers>=2.2
+chromadb>=0.5
