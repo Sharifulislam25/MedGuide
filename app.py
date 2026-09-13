@@ -14,15 +14,21 @@ from src.knowledge_base import (
 )
 from src.rag import build_context
 from src.response import generate_response, get_sources
+from src.safety import check_for_emergency, get_emergency_response, enforce_safe_language
 
 st.set_page_config(
     page_title="MedGuide",
+    page_icon="🩺",
     layout="wide"
 )
 
+# ============================================================
+# Sidebar: developer tools -- not part of the everyday user flow,
+# kept separate so the main page stays simple and professional.
+# ============================================================
 with st.sidebar:
-    st.header("Admin")
-    st.caption("For development use -- rebuilds the reference knowledge base after editing files in knowledge/.")
+    st.header("🛠️ Developer Tools")
+    st.caption("Rebuilds the reference knowledge base after editing files in knowledge/.")
     if st.button("🔄 Rebuild medical knowledge base"):
         with st.spinner("Rebuilding medical knowledge base..."):
             num_rebuilt = rebuild_medical_knowledge_base()
@@ -30,10 +36,7 @@ with st.sidebar:
 
     st.divider()
     st.subheader("Test the knowledge base")
-    st.caption(
-        "Debug tool: search medical_knowledge directly with any "
-        "question, to see exactly what would be retrieved from it."
-    )
+    st.caption("Search medical_knowledge directly with any question.")
     test_query = st.text_input("Question to search for")
 
     col_search, col_clear = st.columns(2)
@@ -42,10 +45,6 @@ with st.sidebar:
         with st.spinner("Searching..."):
             query_vector = embed_query(test_query)
             search_results = query_collection(MEDICAL_KNOWLEDGE_COLLECTION, query_vector, top_k=3)
-        # Streamlit reruns this whole script on every interaction, so
-        # without saving to session_state, these results would vanish
-        # the moment you clicked anything else. Session state persists
-        # for as long as this browser tab stays open.
         st.session_state["kb_search_query"] = test_query
         st.session_state["kb_search_results"] = search_results
 
@@ -64,32 +63,33 @@ with st.sidebar:
             st.write("No results. Has the knowledge base been built yet?")
         else:
             for doc_text, meta, distance in zip(result_docs, result_metas, result_distances):
-                # Smaller distance = more similar to your question.
                 st.write(f"**{meta['source']}** (distance: {distance:.3f})")
                 st.caption(doc_text[:200] + "...")
 
-st.title("MedGuide")
+# ============================================================
+# Header
+# ============================================================
+st.title("🩺 MedGuide")
 st.subheader("Medical Document Assistant")
-
 st.write(
     "Upload a medical document to get started. "
-    "(Currently supported: TXT, PDF, JPG, JPEG, PNG. More formats are added in later phases.)"
+    "(Currently supported: TXT, PDF, JPG, JPEG, PNG.)"
 )
 
-# --- Medical knowledge base (Phase 10) ---
-# Loads MedGuide's own trusted reference texts (knowledge/*.txt) into a
-# separate ChromaDB collection, kept apart from whatever the user
-# uploads. This only needs to happen once -- after the first run,
-# ChromaDB's persistent storage already has it, so this check is
-# instant on every run after that.
+# Load the medical knowledge base once, ever -- persisted after that,
+# so this check is instant on every run after the very first one.
 if medical_knowledge_base_is_empty():
     with st.spinner("Setting up the medical knowledge base (first run only)..."):
         num_knowledge_chunks = build_medical_knowledge_base()
     st.info(
         f"Medical knowledge base loaded: {num_knowledge_chunks} chunks "
-        "covering glucose, blood pressure, hemoglobin, and cholesterol."
+        "covering glucose, blood pressure, hemoglobin, cholesterol, CBC, "
+        "liver, kidney, and thyroid function."
     )
 
+# ============================================================
+# Upload + process a document
+# ============================================================
 uploaded_file = st.file_uploader(
     "Choose a file", type=["txt", "pdf", "jpg", "jpeg", "png"]
 )
@@ -123,8 +123,7 @@ if uploaded_file is not None:
 
     if documents:
         # Clean the extracted text right after extraction, so every
-        # later step (display, chunking, embedding) works with the same
-        # tidy text -- not raw PDF/OCR output.
+        # later step works with the same tidy text, not raw output.
         for doc in documents:
             doc.text = clean_text(doc.text)
 
@@ -134,13 +133,8 @@ if uploaded_file is not None:
         st.write(f"**Type:** {documents[0].file_type}")
         st.write(f"**Pages:** {len(documents)}")
 
-        # A PDF can now have a mix of normal pages and OCR'd pages, so
-        # the top-level OCR status might not be a simple True/False.
         ocr_flags = {doc.metadata.get("ocr") for doc in documents}
-        if len(ocr_flags) == 1:
-            ocr_status = ocr_flags.pop()
-        else:
-            ocr_status = "Mixed (some pages required OCR)"
+        ocr_status = ocr_flags.pop() if len(ocr_flags) == 1 else "Mixed (some pages required OCR)"
         st.write(f"**OCR Used:** {ocr_status}")
 
         st.divider()
@@ -168,97 +162,66 @@ if uploaded_file is not None:
                         key=f"page_{doc.page}"
                     )
 
-        # --- Chunking (Phase 7) ---
-        # Split the cleaned text into overlapping chunks, ready for the
-        # embedding step in Phase 8. Shown here as a debug view for now
-        # so it's easy to sanity-check chunk sizes before we start
-        # generating embeddings from them.
+        # --- Behind the scenes: chunk, embed, store (Phases 7-9) ---
+        # Everyday users see one clean status line; the step-by-step
+        # numbers live in the collapsed developer expander below.
         chunks = chunk_documents(documents)
-
-        st.divider()
-        st.subheader("Chunking (debug view)")
-
-        total_characters = sum(len(doc.text) for doc in documents)
-        total_chunks = len(chunks)
-        average_chunk_size = (
-            sum(len(c.text) for c in chunks) / total_chunks if total_chunks > 0 else 0
-        )
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total characters", total_characters)
-        col2.metric("Total chunks", total_chunks)
-        col3.metric("Average chunk size", f"{average_chunk_size:.0f}")
-
-        with st.expander(f"View all {total_chunks} chunks"):
-            for chunk in chunks:
-                st.caption(
-                    f"Chunk {chunk.chunk_id} — {chunk.source}, "
-                    f"page {chunk.page} ({len(chunk.text)} chars)"
-                )
-                st.text(chunk.text)
-                st.markdown("---")
-
-        # --- Embeddings (Phase 8) ---
-        # Turn each chunk's text into a vector. The first run of this
-        # will be slow (downloading the model, ~90MB); after that it's
-        # cached locally and loads in a couple of seconds.
-        st.divider()
-        st.subheader("Embeddings (debug view)")
+        embeddings = []
 
         if chunks:
-            with st.spinner("Loading embedding model and generating embeddings..."):
+            with st.spinner("Processing document (chunking, embedding, storing)..."):
                 chunk_texts = [chunk.text for chunk in chunks]
                 embeddings = embed_texts(chunk_texts)
+                add_chunks(USER_DOCUMENTS_COLLECTION, chunks, embeddings)
 
-            embedding_dimension = len(embeddings[0]) if embeddings else 0
-            st.write(f"**Embeddings generated:** {len(embeddings)}")
-            st.write(f"**Embedding dimension:** {embedding_dimension}")
-
-            with st.expander("Preview first embedding vector (first 8 of 384 numbers)"):
-                st.code(str(embeddings[0][:8]))
-        else:
-            st.write("No chunks to embed.")
-
-        # --- Vector Store (Phase 9) ---
-        # Persist the chunks + embeddings in a local, on-disk ChromaDB
-        # collection, so they survive between runs of the app instead
-        # of needing to be re-embedded every time you open MedGuide.
-        st.divider()
-        st.subheader("Vector Store (debug view)")
-
-        if chunks:
-            add_chunks(USER_DOCUMENTS_COLLECTION, chunks, embeddings)
             collection = get_collection(USER_DOCUMENTS_COLLECTION)
-
-            st.write(f"**Collection:** {USER_DOCUMENTS_COLLECTION}")
-            st.write(f"**Total chunks stored (across all uploads so far):** {collection.count()}")
-
-            # Round-trip sanity check: querying with a chunk's own
-            # embedding should retrieve that exact same chunk back.
-            # This is the "chunk -> embedding -> ChromaDB -> retrieve"
-            # test the project plan calls for at this phase.
-            check_result = query_collection(USER_DOCUMENTS_COLLECTION, embeddings[0], top_k=1)
-            retrieved_docs = check_result["documents"][0]
-            retrieved_text = retrieved_docs[0] if retrieved_docs else None
-
-            if retrieved_text == chunks[0].text:
-                st.success("Round-trip check passed: a stored chunk was retrieved correctly.")
-            else:
-                st.warning("Round-trip check: retrieved text didn't match exactly -- see details below.")
-
-            with st.expander("Round-trip check details"):
-                st.write("Chunk that was stored:")
-                st.text(chunks[0].text[:300])
-                st.write("Chunk retrieved back from ChromaDB:")
-                st.text((retrieved_text or "(nothing retrieved)")[:300])
+            st.success(
+                f"✅ Processed into {len(chunks)} chunks and added to your document "
+                f"library ({collection.count()} chunks total stored across all uploads)."
+            )
         else:
-            st.write("No chunks to store.")
+            st.warning("No text was found to process into the document library.")
 
-# --- Ask MedGuide (Phases 11-14: retrieval + RAG + response engine) ---
-# Searches BOTH collections (Phases 11-13), then Phase 14's response
-# engine turns the retrieved chunks into an actual written answer using
-# templates and rules in src/response.py and src/medical_rules.py --
-# no LLM involved (see Section 17 of the project spec).
+        with st.expander("🛠️ Developer debug info (chunking / embeddings / vector store)"):
+            total_characters = sum(len(doc.text) for doc in documents)
+            total_chunks = len(chunks)
+            average_chunk_size = (
+                sum(len(c.text) for c in chunks) / total_chunks if total_chunks > 0 else 0
+            )
+
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total characters", total_characters)
+            col2.metric("Total chunks", total_chunks)
+            col3.metric("Average chunk size", f"{average_chunk_size:.0f}")
+
+            if chunks:
+                st.write("**Chunks:**")
+                for chunk in chunks:
+                    st.caption(
+                        f"Chunk {chunk.chunk_id} — {chunk.source}, "
+                        f"page {chunk.page} ({len(chunk.text)} chars)"
+                    )
+                    st.text(chunk.text)
+                    st.markdown("---")
+
+                embedding_dimension = len(embeddings[0]) if embeddings else 0
+                st.write(f"**Embeddings generated:** {len(embeddings)}")
+                st.write(f"**Embedding dimension:** {embedding_dimension}")
+                st.code(str(embeddings[0][:8]) if embeddings else "(none)")
+
+                # Round-trip sanity check: querying with a chunk's own
+                # embedding should retrieve that exact same chunk back.
+                check_result = query_collection(USER_DOCUMENTS_COLLECTION, embeddings[0], top_k=1)
+                retrieved_docs = check_result["documents"][0]
+                retrieved_text = retrieved_docs[0] if retrieved_docs else None
+                if retrieved_text == chunks[0].text:
+                    st.success("Round-trip check passed: a stored chunk was retrieved correctly.")
+                else:
+                    st.warning("Round-trip check: retrieved text didn't match exactly.")
+
+# ============================================================
+# Ask MedGuide (Phases 11-15: retrieval + RAG + response + safety)
+# ============================================================
 st.divider()
 st.subheader("Ask MedGuide")
 
@@ -267,20 +230,38 @@ question = st.text_input("What would you like to know?")
 col_ask, col_clear_answer = st.columns(2)
 
 if col_ask.button("Ask") and question:
-    with st.spinner("Searching your documents and the medical knowledge base..."):
-        rag_context = build_context(question)
-        answer_text = generate_response(rag_context)
-        sources = get_sources(rag_context)
-    st.session_state["rag_context"] = rag_context
-    st.session_state["answer_text"] = answer_text
-    st.session_state["sources"] = sources
+    if check_for_emergency(question):
+        # An emergency-associated phrase was detected in the question
+        # itself. Skip the normal RAG pipeline entirely -- a calm,
+        # textbook-style answer is the wrong response here.
+        st.session_state["emergency"] = True
+        st.session_state.pop("rag_context", None)
+        st.session_state.pop("answer_text", None)
+        st.session_state.pop("sources", None)
+    else:
+        st.session_state["emergency"] = False
+        with st.spinner("Searching your documents and the medical knowledge base..."):
+            rag_context = build_context(question)
+            answer_text = generate_response(rag_context)
+            # Safety-net check: even though response.py's templates are
+            # written to avoid it, verify the final text never contains
+            # definitive-diagnosis language before showing it.
+            answer_text = enforce_safe_language(answer_text)
+            sources = get_sources(rag_context)
+        st.session_state["rag_context"] = rag_context
+        st.session_state["answer_text"] = answer_text
+        st.session_state["sources"] = sources
 
 if col_clear_answer.button("🧹 Clear"):
     st.session_state.pop("rag_context", None)
     st.session_state.pop("answer_text", None)
     st.session_state.pop("sources", None)
+    st.session_state.pop("emergency", None)
 
-if "answer_text" in st.session_state:
+if st.session_state.get("emergency"):
+    st.error(get_emergency_response())
+
+elif "answer_text" in st.session_state:
     rag_context = st.session_state["rag_context"]
     st.caption(f'For: "{rag_context.query}"')
 
@@ -295,7 +276,7 @@ if "answer_text" in st.session_state:
     else:
         st.write("No sources -- nothing relevant was found.")
 
-    with st.expander("Retrieved context (debug view)"):
+    with st.expander("🛠️ Developer debug info (retrieved context)"):
         st.write("**From your uploaded documents:**")
         if rag_context.user_document_chunks:
             for chunk in rag_context.user_document_chunks:
@@ -312,6 +293,9 @@ if "answer_text" in st.session_state:
         else:
             st.caption("Nothing relevant found in the medical knowledge base.")
 
+# ============================================================
+# Footer
+# ============================================================
 st.divider()
 st.caption(
     "Educational information only. MedGuide does not provide a medical diagnosis."
